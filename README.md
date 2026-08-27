@@ -5,6 +5,8 @@ file browser** built on FastAPI. Point it at any directory, open the printed
 URL (or scan the QR code), and browse, preview, and download its contents
 from your phone or laptop.
 
+![folder_view](assets/screenshots/folder_view.png)
+
 ## Features
 
 - **Subdirectory browsing** — navigate the whole tree, not just the top level.
@@ -19,6 +21,12 @@ from your phone or laptop.
   back/forward works.
 - **Type-safe file serving** — all routes resolve paths against the shared
   root and reject any traversal (`../`) with a `400`.
+
+
+<p float="middle">
+  <img src="assets/screenshots/file_preview_text.png" width="47.5%" /> 
+  <img src="assets/screenshots/file_preview_img.png" width="51%" />
+</p>
 
 ## Requirements
 
@@ -46,7 +54,23 @@ On startup it prints the LAN URL and an ASCII QR code:
 Sharing folder: C:\Users\me\photos
 Access it at:   http://192.168.1.218:8000
 
-  [QR code]
+█████████████████████████████████
+█████████████████████████████████
+████ ▄▄▄▄▄ █ ▀▀▄ ▄  ▀█ ▄▄▄▄▄ ████
+████ █   █ ███ ▄▄▄▄▀██ █   █ ████
+████ █▄▄▄█ █ ▄▄ █▄▄▀ █ █▄▄▄█ ████
+████▄▄▄▄▄▄▄█ █ ▀ █▄█▄█▄▄▄▄▄▄▄████
+████ ▄▄▀▀▄▄▀▄  ██▄▄▄▄ ▄ ▄▀█  ████
+████▀   ▀▀▄▀ ▀█▄█▄▄▄█▀▀ █ ▄█▄████
+██████▀▄██▄▀  █▄ ▄▄█▀ ▀▄▄██▀ ████
+████▄▄██ ▀▄  ▀ ▀ ▄▄▀▀ ▄▄█▄▄█▄████
+████▄▄▄▄▄▄▄▄ █ ██ ▄▄ ▄▄▄ ▄█▄▀████
+████ ▄▄▄▄▄ █▀ ▄▄█▀█  █▄█ ▄ █▄████
+████ █   █ ██▀█▄ ▄██ ▄    ▀█▄████
+████ █▄▄▄█ █ ▄▀▀ ▄ █▀█▄▀▀▀▀▄▄████
+████▄▄▄▄▄▄▄█▄▄▄██▄▄█▄█▄█▄▄██▄████
+█████████████████████████████████
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 ```
 
 Open that URL on any device on the same network, or scan the QR.
