@@ -1,16 +1,15 @@
 # pyShare
 
-Share a folder over your local network with a small, installable **PWA file
-browser** built on FastAPI. Point it at any directory, open the printed URL
-(or scan the QR code), and browse, preview, and download its contents from
-your phone or laptop.
+Share a folder over your local network with a fast, mobile-friendly **web
+file browser** built on FastAPI. Point it at any directory, open the printed
+URL (or scan the QR code), and browse, preview, and download its contents
+from your phone or laptop.
 
 ## Features
 
 - **Subdirectory browsing** — navigate the whole tree, not just the top level.
-- **Installable PWA** — add to home screen / install as an app; a service
-  worker caches the app shell so the UI loads fast and the toolbar works
-  offline (shared content is never cached).
+- **Self-contained UI** — one HTML page served by the app; no build step and
+  no client-side dependencies, so it works on any modern browser.
 - **Grid & list views** with breadcrumbs, instant folder filtering, and
   sorting by name, size, or modified date. Preferences persist per device.
 - **Inline previews** for images, video, audio, and text/code — plus
@@ -24,13 +23,15 @@ your phone or laptop.
 ## Requirements
 
 - Python 3.10+
-- [FastAPI](https://fastapi.tiangolo.com/), [Uvicorn](https://www.uvicorn.org/),
-  and [`qrcode`](https://pypi.org/project/qrcode/)
+- Dependencies (installed from `requirements.txt`):
+  [FastAPI](https://fastapi.tiangolo.com/),
+  [Uvicorn](https://www.uvicorn.org/),
+  [`qrcode`](https://pypi.org/project/qrcode/)
 
 > No Pillow needed — QR codes are rendered as SVG via `qrcode.image.svg`.
 
 ```bash
-pip install fastapi uvicorn qrcode
+pip install -r requirements.txt
 ```
 
 ## Usage
@@ -44,7 +45,6 @@ On startup it prints the LAN URL and an ASCII QR code:
 ```
 Sharing folder: C:\Users\me\photos
 Access it at:   http://192.168.1.218:8000
-(UI is a PWA - installable on phones, works via QR scan)
 
   [QR code]
 ```
@@ -71,12 +71,10 @@ project.
 
 | Endpoint | Description |
 |----------|-------------|
-| `GET /` | The PWA app shell (single embedded HTML file). |
+| `GET /` | The file-browser UI (single embedded HTML file). |
 | `GET /api/browse?p=<rel>` | JSON listing for a subdirectory: `{ path, parent, root, share_url, items:[{name,type,size,mtime}] }`. `p=""` = root. |
 | `GET /files/<rel>` | Serve a file (nested paths supported). |
 | `GET /download/<rel>` | Same as `/files` but sets `Content-Disposition: attachment`. |
-| `GET /manifest.json` | PWA web app manifest. |
-| `GET /sw.js` | Service worker (caches the app shell only). |
 | `GET /icon.svg` | App icon. |
 | `GET /qr.svg` | SVG QR code of the current share URL. |
 
@@ -86,9 +84,10 @@ escapes it returns `400`.
 ## Project layout
 
 ```
-pyshare.py    FastAPI app + embedded PWA (single file, no build step)
-pysh.bat      Windows shortcut to share the current directory
-.gitignore    excludes __pycache__ / *.pyc
+pyshare.py        FastAPI app + embedded file-browser UI (single file, no build step)
+pysh.bat          Windows shortcut to share the current directory
+requirements.txt  Python dependencies
+.gitignore        excludes __pycache__ / *.pyc
 ```
 
 ## Security notes
@@ -96,6 +95,4 @@ pysh.bat      Windows shortcut to share the current directory
 - The server binds to `0.0.0.0`, so **anyone on your network can read the
   shared folder** — only share directories you're comfortable exposing.
 - There is no authentication; treat the LAN URL as the credential.
-- Path traversal is blocked, and the service worker deliberately never caches
-  `/files/` or `/api/` responses, so stale or private content isn't retained
-  on the device.
+- Path traversal is blocked on every route.

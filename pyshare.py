@@ -5,7 +5,6 @@ Run:  python pyshare.py <dir> [--port 8000]
 
 import argparse
 import io
-import json
 import os
 import socket
 import sys
@@ -115,66 +114,6 @@ async def icon():
                     headers={"Cache-Control": "max-age=3600"})
 
 
-@app.get("/manifest.json", response_class=Response)
-async def manifest():
-    data = {
-        "name": "pyShare",
-        "short_name": "pyShare",
-        "description": "Browse and download files from a shared folder",
-        "start_url": "/",
-        "scope": "/",
-        "display": "standalone",
-        "background_color": "#0b0e14",
-        "theme_color": "#0b0e14",
-        "icons": [{"src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}],
-    }
-    return Response(json.dumps(data), media_type="application/manifest+json")
-
-
-SW_JS = r"""
-const CACHE = "pyshare-v1";
-const SHELL = ["/", "/icon.svg", "/manifest.json"];
-
-self.addEventListener("install", e => e.waitUntil(
-  caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())
-));
-
-self.addEventListener("activate", e => e.waitUntil(
-  caches.keys()
-    .then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k))))
-    .then(() => self.clients.claim())
-));
-
-self.addEventListener("fetch", e => {
-  const req = e.request;
-  if (req.method !== "GET") return;
-  const url = new URL(req.url);
-  if (url.origin !== location.origin) return;
-  // never cache shared content or API responses
-  if (url.pathname.startsWith("/files/") || url.pathname.startsWith("/api/")) return;
-
-  e.respondWith(
-    fetch(req).then(r => {
-      if (r.ok) {
-        const key = url.pathname === "/" ? "/" : req;
-        caches.open(CACHE).then(c => c.put(key, r.clone())).catch(() => {});
-      }
-      return r;
-    }).catch(() =>
-      caches.match(url.pathname === "/" ? "/" : req)
-        .then(m => m || new Response("Offline", { status: 503, statusText: "Offline" }))
-    )
-  );
-});
-"""
-
-
-@app.get("/sw.js", response_class=Response)
-async def service_worker():
-    return Response(SW_JS, media_type="application/javascript",
-                    headers={"Cache-Control": "no-cache"})
-
-
 @app.get("/qr.svg", response_class=Response)
 async def qr_svg():
     qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_M,
@@ -232,6 +171,7 @@ def main():
     share_url = f"http://{get_lan_ip()}:{args.port}"
     print(f"Sharing folder: {shared_dir}")
     print(f"Access it at:   {share_url}")
+    print(f"Ensure both devices are on the same network")
 
     qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_L,
                        box_size=10, border=4)
@@ -255,13 +195,9 @@ INDEX_HTML = r"""<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0b0e14">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>pyShare</title>
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/icon.svg">
-<link rel="manifest" href="/manifest.json">
 <style>
 :root{
   --bg:#0b0e14; --panel:#121826; --panel-2:#182238; --line:#223047;
@@ -741,12 +677,6 @@ window.addEventListener("popstate", load);
 /* close dialogs on backdrop click */
 for (const d of [prevDlg, infoDlg])
   d.addEventListener("click", e => { if (e.target === d) d.close(); });
-
-/* ---------- service worker (app shell offline) ---------- */
-if ("serviceWorker" in navigator &&
-    (location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
-  window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));
-}
 
 /* ---------- init ---------- */
 $("#sort").value = sort;
