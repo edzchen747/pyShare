@@ -1,4 +1,4 @@
-"""pyShare — share a directory over LAN with an installable PWA file browser.
+"""pyShare — share a directory over LAN with a file browser.
 
 Run:  python pyshare.py <dir> [--port 8000]
 """
@@ -95,7 +95,7 @@ async def download_file(file_path: str):
 
 
 # ---------------------------------------------------------------------------
-# PWA assets
+# Assets
 # ---------------------------------------------------------------------------
 
 ICON_SVG = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
@@ -219,7 +219,7 @@ def get_lan_ip():
 
 def main():
     global shared_dir, share_url
-    parser = argparse.ArgumentParser(description="Share a directory over FastAPI with a PWA browser.")
+    parser = argparse.ArgumentParser(description="Share a directory over FastAPI with a file browser.")
     parser.add_argument("dir", help="The directory to share", type=str)
     parser.add_argument("--port", help="Port to use", type=int, default=8000)
     args = parser.parse_args()
@@ -232,7 +232,6 @@ def main():
     share_url = f"http://{get_lan_ip()}:{args.port}"
     print(f"Sharing folder: {shared_dir}")
     print(f"Access it at:   {share_url}")
-    print("(UI is a PWA - installable on phones, works via QR scan)\n")
 
     qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_L,
                        box_size=10, border=4)
